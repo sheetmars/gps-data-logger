@@ -265,7 +265,7 @@ def geodetic_to_ecef(
     
     Returns: (X, Y, Z)
     """
-    # WGS84 parameters (exact current values as of 2026)
+    # WGS84 ellipsoid parameters
     a = 6378137.0          # semi-major axis (m)
     f = 1.0 / 298.257223563  # flattening
     b = a * (1.0 - f)      # semi-minor axis
@@ -564,7 +564,7 @@ ax.legend(loc='upper right', fontsize=9)
 # Tight layout and save
 plt.tight_layout()
 plt.savefig(PNG_OUTPUT, dpi=DPI, bbox_inches='tight')
-print(f"3D ECEF plot saved → {PNG_OUTPUT}")
+print(f"3D ENU plot saved → {PNG_OUTPUT}")
 
 plt.show()
 

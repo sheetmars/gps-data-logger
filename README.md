@@ -1,26 +1,61 @@
-# Instructions:
-1. Clone the repository
-    a. After cloning, navigate the the cloned repository in the command line
-2. Set up the hardware
-    a. Put the Adafruit Ultimate GPS + Logging Shield with an SD card onto an Arduino UNO
-    b. Connect the positive node of the TMP36 sensor into +5V, the negative node into GND, and the middle node into A0
-    c. Connect the GPS SMA antenna into the SMA cable port on the Adafruit Ultimate GPS + Logging Shield
-    d. Connect the Arduino UNO into the computer to program
-        i. After the Arduino UNO is programmed, a standard power source can be used instead of a computer
-        ii. If using a computer serial terminal to view the data, use the 115200 Baud rate
-3. Program the Arduino board with the .ino file located in the `arduino_logger_code` directory
-    a. Make sure to install version `1.1.3` of the `Adafruit GPS` Arduino library
-4. Collect data
-    a. After data collection, move all .txt files from the SD card into the `data` directory
-5. Create a virtual python environment and install requirements
-    a. Run the line `python -m venv *environment_name*` in the command line
-        i. Activate the evironment by running `source *environment_name*/bin/activate`
-    b. Run the line `pip install -r requirements.txt`
-6. Either run the .py script or go through the .ipynb notebook
-    a. To run the script run the line `python parser.py` in the command line
-    b. The loaded data is saved to a parquet file called `data.parquet` for future use
-        i. A script to use those has not been added to the repo yet (as of 15-03-2026)
-7. Explore outputted images
-    a. The 3D images that pop up when running can be interacted with the mouse
-        i. In order to view the next image, close the current one (only 1 image displayed at a time)
-    b. The images are saved as .png files to the repo directory
+# GPS + Temperature Data Logger
+
+An Arduino-based field logger that records 1 Hz GPS position and 0.1 Hz temperature to an SD card. A Python pipeline then parses the raw NMEA logs, fuses the two sensor streams and plots the track in three coordinate frames: geodetic (lat/long on a basemap), Earth-Centred Earth-Fixed (ECEF), and a local East-North-Up (ENU) frame.
+
+I built it to practise the full chain from sensor to deliverable: hardware setup, firmware, field collection, parsing, sensor fusion, and coordinate-frame transformations. The data in this repo comes from a round-trip drive between Burlington and Hamilton, Ontario in March 2026 (about 2 hours, ~7,300 fixes).
+
+![Hardware setup](images/hardware_setup.jpg)
+
+## Hardware
+
+| Component | Role |
+|---|---|
+| Arduino Uno | Microcontroller |
+| Adafruit Ultimate GPS + Logging Shield (MTK3339) | GPS receiver and SD card writer |
+| External GPS SMA antenna | Better reception than the shield's built-in patch antenna |
+| TMP36 analog temperature sensor | Ambient temperature (signal → A0, + → 5 V, − → GND) |
+| USB power bank | Field power |
+
+## How it works
+
+**Firmware** ([`arduino_logger_code/shield_sdlog.ino`](arduino_logger_code/shield_sdlog.ino))
+- Reads NMEA sentences from the GPS on a timer interrupt and writes the RMC and GGA sentences to `GPSLOGxx.TXT` once per second.
+- Every 10 seconds, when the GPS has a fix, it reads the TMP36 and writes a timestamped line to a separate `TMPLOGxx.TXT`.
+
+**Processing** ([`parser.py`](parser.py), or step by step in [`gps_data_analysis.ipynb`](gps_data_analysis.ipynb))
+1. **Parse** the raw `$GPGGA` sentences: UTC time, satellite count, lat/long (converted from degrees-decimal-minutes), and altitude. Parse speed over ground from `$GPRMC`.
+2. **Fuse** the 0.1 Hz temperature stream with the 1 Hz position stream. The script joins them on time and linearly interpolates temperature to 1 Hz, then saves the result to `data.parquet`.
+3. **Transform** WGS84 geodetic coordinates to ECEF (X, Y, Z), then rotate them into a local ENU frame whose origin is the first fix.
+4. **Plot** the track three ways, coloured by elevation.
+
+## Results
+
+| ECEF (global Cartesian) | ENU (local, origin at first fix) |
+|---|---|
+| ![ECEF plot](images/gps_track_ecef_3d.png) | ![ENU plot](images/gps_track_enu_3d.png) |
+
+The ENU frame is the most practical view for site-scale work, because positions read directly as metres east, north and up from a chosen origin. ECEF is the intermediate step that gets you there.
+
+## Running it
+
+```bash
+git clone https://github.com/sheetmars/gps-data-logger.git
+cd gps-data-logger
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python parser.py
+```
+
+The 3D plots open in interactive windows; close one to show the next. Every plot is also saved as a PNG.
+
+To log your own data, flash the sketch (Arduino library: **Adafruit GPS Library v1.1.3**), collect, and copy the `.TXT` files from the SD card into `data/`.
+
+## Notes
+
+- **Privacy:** I trimmed the logs in `data/` to remove everything within 1.5 km of the start and end points.
+- **Temperature:** temperature was logged to practise merging datasets with different sampling rates. It isn't plotted, because the variation over the drive wasn't interesting.
+- **Firmware:** the sketch is based on Adafruit's `shield_sdlog` example (Ladyada, modified by Bill Greiman). I added the TMP36 reading, the second log file, and the 10-second fix-gated temperature logging.
+
+## License
+
+MIT for my own code. See [LICENSE](LICENSE). The Adafruit-derived portions of the sketch remain under Adafruit's original license.
