@@ -26,9 +26,11 @@ I built it to practise the full chain from sensor to deliverable: hardware setup
 1. **Parse** the raw `$GPGGA` sentences: UTC time, satellite count, lat/long (converted from degrees-decimal-minutes), and altitude. Parse speed over ground from `$GPRMC`.
 2. **Fuse** the 0.1 Hz temperature stream with the 1 Hz position stream. The script joins them on time and linearly interpolates temperature to 1 Hz, then saves the result to `data.parquet`.
 3. **Transform** WGS84 geodetic coordinates to ECEF (X, Y, Z), then rotate them into a local ENU frame whose origin is the first fix.
-4. **Plot** the track three ways, coloured by elevation.
+4. **Plot** the drive three different ways, coloured by elevation.
 
 ## Results
+
+![Lat/long track on a basemap](images/gps_lat_long_plot.png)
 
 | ECEF (global Cartesian) | ENU (local, origin at first fix) |
 |---|---|
@@ -46,7 +48,7 @@ pip install -r requirements.txt
 python parser.py
 ```
 
-The 3D plots open in interactive windows; close one to show the next. Every plot is also saved as a PNG.
+The 3D plots open in interactive windows; close one to show the next. Every plot is also saved as a PNG in `images/`.
 
 To log your own data, flash the sketch (Arduino library: **Adafruit GPS Library v1.1.3**), collect, and copy the `.TXT` files from the SD card into `data/`.
 
@@ -55,6 +57,7 @@ To log your own data, flash the sketch (Arduino library: **Adafruit GPS Library 
 - **Privacy:** I trimmed the logs in `data/` to remove everything within 1.5 km of the start and end points.
 - **Temperature:** temperature was logged to practise merging datasets with different sampling rates. It isn't plotted, because the variation over the drive wasn't interesting.
 - **Firmware:** the sketch is based on Adafruit's `shield_sdlog` example (Ladyada, modified by Bill Greiman). I added the TMP36 reading, the second log file, and the 10-second fix-gated temperature logging.
+- **AI Use:** The parsing and plotting code was written with AI assistance. My focus was the hardware build, field data collection, and the geodetic → ECEF → ENU workflow.
 
 ## License
 

@@ -157,7 +157,7 @@ Begin of map output
 """
 
 # config values
-PNG_OUTPUT = "gps_lat_long_plot.png"
+PNG_OUTPUT = "images/gps_lat_long_plot.png"
 DPI = 200 # sharp export
 FIG_SIZE = (14, 10)
 COLOUR_BY = "Elevation (m)"
@@ -310,7 +310,7 @@ COLOUR_BY = "Elevation (m)"
 CMAP = "cool"
 FIG_SIZE = (12, 10)
 ELEV, AZIM = 25, -110 # view angles
-PNG_OUTPUT = "gps_track_ecef_3d.png"
+PNG_OUTPUT = "images/gps_track_ecef_3d.png"
 DPI = 180
 
 # Extract ECEF arrays
@@ -480,7 +480,7 @@ COLOUR_BY       = "Elevation (m)"
 CMAP           = "cool"
 FIG_SIZE       = (12, 10)
 ELEV, AZIM     = 25, -110 # view angles
-PNG_OUTPUT     = "gps_track_enu_3d.png"
+PNG_OUTPUT     = "images/gps_track_enu_3d.png"
 DPI            = 180
 
 df = add_enu_columns(df)
