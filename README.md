@@ -1,5 +1,7 @@
 # GPS + Temperature Data Logger
 
+**Project write-up:** [sheetmars.github.io/projects/gps-data-logger](https://sheetmars.github.io/projects/gps-data-logger/)
+
 An Arduino-based field logger that records 1 Hz GPS position and 0.1 Hz temperature to an SD card. A Python pipeline then parses the raw NMEA logs, fuses the two sensor streams and plots the track in three coordinate frames: geodetic (lat/long on a basemap), Earth-Centred Earth-Fixed (ECEF), and a local East-North-Up (ENU) frame.
 
 I built it to practise the full chain from sensor to deliverable: hardware setup, firmware, field collection, parsing, sensor fusion, and coordinate-frame transformations. The data in this repo comes from a round-trip drive between Burlington and Hamilton, Ontario in March 2026 (about 2 hours, ~7,300 fixes).
